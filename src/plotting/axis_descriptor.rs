@@ -70,18 +70,20 @@ impl ScaledAxisDescriptor {
         match self.target {
             AxisQuantity::Duration { base } => format!("{} [{}]", self.default_axis.label, base),
             AxisQuantity::SimpleSi {
+                base: SiPrefix::Base,
+                ..
+            } => self.default_axis.label.to_string(),
+            AxisQuantity::SimpleSi {
                 base,
-                show_exponent,
+                show_exponent: true,
             } => {
-                if base == SiPrefix::Base {
-                    self.default_axis.label.to_string()
-                } else {
-                    if show_exponent {
-                        format!("{} ×{}", self.default_axis.label, base.exponent())
-                    } else {
-                        format!("{} [{}]", self.default_axis.label, base.to_string())
-                    }
-                }
+                format!("{} ×{}", self.default_axis.label, base.exponent())
+            }
+            AxisQuantity::SimpleSi {
+                base,
+                show_exponent: false,
+            } => {
+                format!("{} [{}]", self.default_axis.label, base)
             }
         }
     }
