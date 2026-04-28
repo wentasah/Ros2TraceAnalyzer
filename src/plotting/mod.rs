@@ -40,7 +40,7 @@ pub fn render_plot(
                 &spacing,
                 &axis_description,
             )?;
-            output.write_all(out.as_bytes()).unwrap();
+            output.write_all(out.as_bytes())?;
         }
         PlotOutputFormat::Png => {
             let mut buffer = vec![0u8; (width * height * 3) as usize];
