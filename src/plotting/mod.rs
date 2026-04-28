@@ -149,7 +149,8 @@ fn draw_into_canvas<B: DrawingBackend>(
     axis_description: &AxisDescriptors,
 ) -> Result<(), PlotConstructionError<B::ErrorType>> {
     let area = canvas.into_drawing_area();
-    area.fill(&plotters::style::WHITE).unwrap();
+    area.fill(&plotters::style::WHITE)
+        .map_err(PlotConstructionError::DrawingError)?;
 
     let mut plot = ChartBuilder::on(&area);
 
