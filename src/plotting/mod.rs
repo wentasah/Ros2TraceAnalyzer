@@ -7,9 +7,7 @@ use plotters_svg::SVGBackend;
 
 use crate::argsv2::plot_args::{PlotOutputFormat, PlotRequest, PlotVariants};
 use crate::extract::PlottableData;
-use crate::plotting::axis_descriptor::{
-    AxisDescriptors, ScaledAxisDescriptor, resolve_axis_descriptors,
-};
+use crate::plotting::axis_descriptor::{ScaledAxisDescriptor, resolve_axis_descriptors};
 use crate::plotting::error::{PlotConstructionCommonError, PlotConstructionError};
 use crate::plotting::plots::PlotData;
 use crate::plotting::plots::histogram::HistogramPlot;
@@ -26,9 +24,6 @@ pub fn render_plot(
     output_format: PlotOutputFormat,
 ) -> Result<(), PlotConstructionCommonError> {
     let (width, height) = plot_request.size;
-    let spacing = PlotSpacing::from(plot_request.size);
-
-    let axis_description = resolve_axis_descriptors(plot_request.property, &plot_request.plot);
 
     match output_format {
         PlotOutputFormat::Svg => {
@@ -36,9 +31,7 @@ pub fn render_plot(
             draw_into_canvas(
                 SVGBackend::with_string(&mut out, (width, height)),
                 plotting_data,
-                &plot_request.plot,
-                &spacing,
-                &axis_description,
+                plot_request,
             )?;
             output.write_all(out.as_bytes())?;
         }
@@ -47,9 +40,7 @@ pub fn render_plot(
             draw_into_canvas(
                 BitMapBackend::with_buffer(&mut buffer, (width, height)),
                 plotting_data,
-                &plot_request.plot,
-                &spacing,
-                &axis_description,
+                plot_request,
             )?;
 
             use image::ImageEncoder;
@@ -158,10 +149,11 @@ fn label_axis<B: DrawingBackend>(
 fn draw_into_canvas<B: DrawingBackend>(
     canvas: B,
     data: PlottableData,
-    variant: &PlotVariants,
-    spacing: &PlotSpacing,
-    axis_description: &AxisDescriptors,
+    plot_request: &PlotRequest,
 ) -> Result<(), PlotConstructionError<B::ErrorType>> {
+    let spacing = PlotSpacing::from(plot_request.size);
+    let axis_description = resolve_axis_descriptors(plot_request.property, &plot_request.plot);
+
     let area = canvas.into_drawing_area();
     area.fill(&plotters::style::WHITE)
         .map_err(PlotConstructionError::DrawingError)?;
@@ -169,18 +161,22 @@ fn draw_into_canvas<B: DrawingBackend>(
     let mut plot = ChartBuilder::on(&area);
     spacing.apply_to(&mut plot);
 
-    match &variant {
+    match &plot_request.plot {
         PlotVariants::Histogram(histogram_data) => {
-            let histogram = HistogramPlot::new(histogram_data, data, axis_description);
+            let histogram = HistogramPlot::new(histogram_data, data, &axis_description);
             label_axis(
                 histogram.draw_into(&mut plot)?,
                 histogram.scale_axis(),
-                spacing,
+                &spacing,
             )?;
         }
         PlotVariants::Scatter => {
-            let scatter = ScatterPlot::new(data, axis_description);
-            label_axis(scatter.draw_into(&mut plot)?, scatter.scale_axis(), spacing)?;
+            let scatter = ScatterPlot::new(data, &axis_description);
+            label_axis(
+                scatter.draw_into(&mut plot)?,
+                scatter.scale_axis(),
+                &spacing,
+            )?;
         }
     }
 
