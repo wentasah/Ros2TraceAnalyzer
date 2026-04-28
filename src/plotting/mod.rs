@@ -108,6 +108,13 @@ impl From<(u32, u32)> for PlotSpacing {
     }
 }
 
+fn format_tick(desc: &ScaledAxisDescriptor, v: i64) -> String {
+    format!("{:.2}", desc.convert(v))
+        .trim_end_matches('0')
+        .trim_end_matches('.')
+        .to_string()
+}
+
 fn label_axis<B: DrawingBackend>(
     mut plot: ChartContext<
         '_,
@@ -124,18 +131,8 @@ fn label_axis<B: DrawingBackend>(
         .max_light_lines(1)
         .x_desc(scaled_axis_descriptor[0].name())
         .y_desc(scaled_axis_descriptor[1].name())
-        .x_label_formatter(&|v| {
-            format!("{:.2}", scaled_axis_descriptor[0].convert(*v))
-                .trim_end_matches('0')
-                .trim_end_matches('.')
-                .to_string()
-        })
-        .y_label_formatter(&|v| {
-            format!("{:.2}", scaled_axis_descriptor[1].convert(*v))
-                .trim_end_matches('0')
-                .trim_end_matches('.')
-                .to_string()
-        })
+        .x_label_formatter(&|v| format_tick(&scaled_axis_descriptor[0], *v))
+        .y_label_formatter(&|v| format_tick(&scaled_axis_descriptor[1], *v))
         .axis_desc_style(("sans-serif", sizes.desc_size))
         .y_label_style(("sans-serif", sizes.label_size[0]))
         .x_label_style(("sans-serif", sizes.label_size[1]))
