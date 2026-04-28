@@ -25,15 +25,16 @@ pub fn render_plot(
     plot_request: &PlotRequest,
     output_format: PlotOutputFormat,
 ) -> Result<(), PlotConstructionCommonError> {
-    let spacing = PlotSpacing::from((plot_request.size.0, plot_request.size.1));
+    let (width, height) = plot_request.size;
+    let spacing = PlotSpacing::from(plot_request.size);
 
     let axis_description = resolve_axis_descriptors(plot_request.property, &plot_request.plot);
 
     match output_format {
-        crate::argsv2::plot_args::PlotOutputFormat::Svg => {
+        PlotOutputFormat::Svg => {
             let mut out = String::new();
             draw_into_canvas(
-                SVGBackend::with_string(&mut out, (plot_request.size.0, plot_request.size.1)),
+                SVGBackend::with_string(&mut out, (width, height)),
                 plotting_data,
                 &plot_request.plot,
                 &spacing,
@@ -41,10 +42,10 @@ pub fn render_plot(
             )?;
             output.write_all(out.as_bytes()).unwrap();
         }
-        crate::argsv2::plot_args::PlotOutputFormat::Png => {
-            let mut buffer = vec![0u8; (plot_request.size.0 * plot_request.size.1 * 3) as usize];
+        PlotOutputFormat::Png => {
+            let mut buffer = vec![0u8; (width * height * 3) as usize];
             draw_into_canvas(
-                BitMapBackend::with_buffer(&mut buffer, (plot_request.size.0, plot_request.size.1)),
+                BitMapBackend::with_buffer(&mut buffer, (width, height)),
                 plotting_data,
                 &plot_request.plot,
                 &spacing,
@@ -55,12 +56,7 @@ pub fn render_plot(
             use image::codecs::png::PngEncoder;
 
             let img_encoder = PngEncoder::new(&mut *output);
-            img_encoder.write_image(
-                &buffer,
-                plot_request.size.0,
-                plot_request.size.1,
-                image::ColorType::Rgb8,
-            )?;
+            img_encoder.write_image(&buffer, width, height, image::ColorType::Rgb8)?;
         }
     };
 
