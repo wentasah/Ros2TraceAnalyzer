@@ -81,6 +81,20 @@ struct PlotSpacing {
     pub desc_size: i32,
 }
 
+impl PlotSpacing {
+    fn apply_to<B: DrawingBackend>(&self, builder: &mut ChartBuilder<B>) {
+        builder
+            .margin_left(self.margin[0])
+            .margin_top(self.margin[1])
+            .margin_right(self.margin[2])
+            .margin_bottom(self.margin[3])
+            .set_label_area_size(LabelAreaPosition::Left, self.label_margin[0])
+            .set_label_area_size(LabelAreaPosition::Top, self.label_margin[1])
+            .set_label_area_size(LabelAreaPosition::Right, self.label_margin[2])
+            .set_label_area_size(LabelAreaPosition::Bottom, self.label_margin[3]);
+    }
+}
+
 impl From<(u32, u32)> for PlotSpacing {
     fn from(value: (u32, u32)) -> Self {
         match value {
@@ -153,15 +167,7 @@ fn draw_into_canvas<B: DrawingBackend>(
         .map_err(PlotConstructionError::DrawingError)?;
 
     let mut plot = ChartBuilder::on(&area);
-
-    plot.margin_left(spacing.margin[0])
-        .margin_top(spacing.margin[1])
-        .margin_right(spacing.margin[2])
-        .margin_bottom(spacing.margin[3])
-        .set_label_area_size(LabelAreaPosition::Left, spacing.label_margin[0])
-        .set_label_area_size(LabelAreaPosition::Top, spacing.label_margin[1])
-        .set_label_area_size(LabelAreaPosition::Right, spacing.label_margin[2])
-        .set_label_area_size(LabelAreaPosition::Bottom, spacing.label_margin[3]);
+    spacing.apply_to(&mut plot);
 
     match &variant {
         PlotVariants::Histogram(histogram_data) => {
