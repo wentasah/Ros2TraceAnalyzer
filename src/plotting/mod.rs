@@ -74,10 +74,8 @@ struct PlotSpacing {
     /// [left, top, right, bottom]
     pub label_margin: [i32; 4],
 
-    /// Font size of the tick labels
-    ///
-    /// [left, bottom]
-    pub label_size: [i32; 2],
+    pub y_label_size: i32,
+    pub x_label_size: i32,
 
     /// Font size of the axis description
     pub desc_size: i32,
@@ -89,19 +87,22 @@ impl From<(u32, u32)> for PlotSpacing {
             (..400, _) | (_, ..400) => PlotSpacing {
                 margin: [16; 4],
                 label_margin: [32, 0, 0, 32],
-                label_size: [12; 2],
+                y_label_size: 12,
+                x_label_size: 12,
                 desc_size: 14,
             },
             (400..800, 400..800) => PlotSpacing {
                 margin: [16; 4],
                 label_margin: [48, 0, 0, 48],
-                label_size: [12; 2],
+                y_label_size: 12,
+                x_label_size: 12,
                 desc_size: 20,
             },
             (800.., _) | (_, 800..) => PlotSpacing {
                 margin: [32; 4],
                 label_margin: [82, 0, 0, 64],
-                label_size: [20; 2],
+                y_label_size: 20,
+                x_label_size: 20,
                 desc_size: 32,
             },
         }
@@ -134,8 +135,8 @@ fn label_axis<B: DrawingBackend>(
         .x_label_formatter(&|v| format_tick(&scaled_axis_descriptor[0], *v))
         .y_label_formatter(&|v| format_tick(&scaled_axis_descriptor[1], *v))
         .axis_desc_style(("sans-serif", sizes.desc_size))
-        .y_label_style(("sans-serif", sizes.label_size[0]))
-        .x_label_style(("sans-serif", sizes.label_size[1]))
+        .y_label_style(("sans-serif", sizes.y_label_size))
+        .x_label_style(("sans-serif", sizes.x_label_size))
         .draw()
         .map_err(PlotConstructionError::InvalidCoordinateSystem)
 }
