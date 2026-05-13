@@ -10,6 +10,9 @@ pub enum PlotConstructionCommonError {
 
     #[error("Image encoding error")]
     ImageEncodingError(#[from] image::ImageError),
+
+    #[error("I/O error")]
+    IoError(#[from] std::io::Error),
 }
 
 impl<E: std::error::Error + Send + Sync + 'static> From<PlotConstructionError<E>>

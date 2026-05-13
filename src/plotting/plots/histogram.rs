@@ -8,7 +8,7 @@ use crate::argsv2::plot_args::HistogramData;
 use crate::extract::PlottableData;
 use crate::plotting::axis_descriptor::{AxisDescriptors, ScaledAxisDescriptor};
 use crate::plotting::error::PlotConstructionError;
-use crate::plotting::plots::{PlotData, resolve_axis_range};
+use crate::plotting::plots::PlotData;
 
 pub struct HistogramPlot {
     _bin_count: usize,
@@ -67,7 +67,10 @@ impl HistogramPlot {
             binned_data[bin] += 1;
         }
 
-        let y_range = resolve_axis_range(&binned_data);
+        let y_max = *binned_data
+            .iter()
+            .max()
+            .expect("bin_count must be at least 1");
 
         let scaled_axis = [
             axis_descriptor
@@ -83,7 +86,7 @@ impl HistogramPlot {
             _bin_count: bin_count,
             bin_width: bin_width as u64,
             x_range,
-            y_range: (0, y_range.1),
+            y_range: (0, y_max),
             data: binned_data,
             scaled_axis,
         }
